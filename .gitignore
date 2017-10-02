@@ -1,0 +1,7 @@
+creds.py
+readTemp
+*.pyc
+*.old
+kType
+homepage/
+tempcreds.py

@@ -1,0 +1,12 @@
+[Unit]
+Description=Logs temps to influxdb
+After=multi-user.target network-online.target influxdb.service
+Requires=influxdb.service 
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python /home/pi/smokerpi/thermometers/influxlogger.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
