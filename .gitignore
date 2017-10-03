@@ -5,3 +5,4 @@ readTemp
 kType
 homepage/
 tempcreds.py
+*.log

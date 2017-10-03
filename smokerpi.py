@@ -1,12 +1,15 @@
-import PID
 import time
 import math
-import heater.heater
-import dutycycle
 import os
 import argparse
-from tempcreds import *
 from influxdb import InfluxDBClient
+from importlib import import_module
+import smokerpi.heater as heater
+import smokerpi.pid as pid 
+import smokerpi.dutycycle as dutycycle
+from creds import *
+import thermometers 
+from smokerpi.settings import *
 DUTY_CYCLE_DURATION = 60 
 DEAD_TIME = 120
 LOW_THRESHOLD = 10
@@ -37,14 +40,15 @@ else:
     outside_temp = 75
 
 def get_f(client):
-    q = client.query('select last(ktypeTemp) from {} where timestamp > now() - 1h'.format(INFLUX_SESSION))
+    temp_query = 'select last({}) from {} where timestamp > now() - 1h'.format(PID_CONTROL_THERM, INFLUX_SESSION)
+    q = client.query(temp_query)
     l = list(q.get_points())
     temp = l[0]['last']
     return temp
 
 dc = dutycycle.DutyCycle(tempsetting, DUTY_CYCLE_DURATION, outside_temp)
 # set pid proportion, integral, derivative
-pid = PID.PID(p, i, d)
+pid = pid.PID(p, i, d)
 h = heater.Heater(DUTY_CYCLE_DURATION, dc.duty_prop)
 client = InfluxDBClient(
     INFLUX_HOST, 

@@ -2,6 +2,10 @@ import os
 import logging
 import logging.config
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Thermometer name
+PID_CONTROL_THERM = "ktypeTemp"
+INFLUX_SESSION = "autosmoker_temps"
 LOGGING = {
     'version': 1,
     'handlers': {
