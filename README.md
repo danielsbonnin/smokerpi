@@ -41,7 +41,7 @@ _Collection of scripts for automating and monitoring a diy electric smoker_
     * Print temperature value to stdout (will output Fahrenheit if argv[1] == "F").
     * Depends on wiringPi library
     
- ** Other
+ ## Other
  * influxlogger.service
      * systemd unit file for running influxlogger.py as a service, on Linux
  
