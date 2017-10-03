@@ -1,3 +1,5 @@
+# influxlogger.service
+# location: /lib/systemd/system/influxlogger.service
 [Unit]
 Description=Logs temps to influxdb
 After=multi-user.target network-online.target influxdb.service

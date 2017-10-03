@@ -10,3 +10,11 @@ Collection of scripts for automating and monitoring a diy electric smoker
 * An **influxdb** installation (or any lightweight database you can get to work with your front-end of choice)
 # Optional (*nice to have*)
 * **Grafana** installation (for pretty graphs and remote monitoring)
+
+# Installing the temperature logger
+* influxlogger.service path: /lib/systemd/system/influxlogger.service
+
+# Configuring 1-wire temperature sensor
+* The DS18B20 temperature sensor that I use uses the 1-wire protocol.
+* After installing the device on your Raspberry Pi, you will need to get the serial number. You can find this by navigating to the /sys/bus/w1/devices folder, and listing its contents.
+* Copy this value to ONE_WIRE_THERM_SERIAL in creds.py 
