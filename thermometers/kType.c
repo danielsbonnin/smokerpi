@@ -1,5 +1,6 @@
  /***/
 /** kType.c: Read k-type thermocouple on raspberry pi using max6675 chip
+ * (must be compiled with -lwiringpi flag)
  * */
 #define CLK 5
 #define DBIT 6 // so
