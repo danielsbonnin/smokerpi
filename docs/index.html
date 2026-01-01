@@ -344,7 +344,7 @@
                 The duty cycle shows what percentage of time the heating element is ON vs OFF. The system automatically adjusts this based on the PID calculations and environmental conditions.
             </p>
             
-            <a href="https://github.com/danielsbonnin/smokerpi" class="github-link" target="_blank">
+            <a href="https://github.com/danielsbonnin/smokerpi" class="github-link" target="_blank" rel="noopener noreferrer">
                 📦 View on GitHub
             </a>
         </div>
@@ -455,8 +455,14 @@
                 const rate = heatInput - heatLoss;
                 if (rate > 0.01) {
                     const timeToTarget = Math.abs(error) / (rate / 0.1);
-                    const minutes = Math.round(timeToTarget / 60);
-                    timeDisplay.textContent = `${minutes}m`;
+                    const totalMinutes = Math.round(timeToTarget / 60);
+                    if (totalMinutes >= 60) {
+                        const hours = Math.floor(totalMinutes / 60);
+                        const minutes = totalMinutes % 60;
+                        timeDisplay.textContent = `${hours}h ${minutes}m`;
+                    } else {
+                        timeDisplay.textContent = `${totalMinutes}m`;
+                    }
                 } else {
                     timeDisplay.textContent = '∞';
                 }
