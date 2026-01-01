@@ -36,7 +36,7 @@ try:
                 }
             }
         ]
-	print(json_body)
+        print(json_body)
         client.write_points(json_body)
         time.sleep(interval)
 except KeyboardInterrupt:

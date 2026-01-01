@@ -1,0 +1,14 @@
+# Configuration template for smokerpi
+# Copy this file to creds.py and fill in your actual values
+
+# InfluxDB Configuration
+INFLUX_DB = "your_database_name"
+INFLUX_HOST = "localhost"
+INFLUX_PORT = 8086
+INFLUX_USER = "your_username"
+INFLUX_PASS = "your_password"
+
+# Thermometer Configuration
+# Serial number for 1-wire thermometer (DS18B20)
+# Find this in /sys/bus/w1/devices/ after connecting your sensor
+ONE_WIRE_THERM_SERIAL = "28-xxxxxxxxxxxx"
