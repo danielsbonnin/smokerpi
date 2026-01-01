@@ -1,7 +1,13 @@
 import os
 import logging
 import logging.config
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_DIR = os.path.join(BASE_DIR, 'logs')
+
+# Create logs directory if it doesn't exist
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
 
 # Thermometer name
 PID_CONTROL_THERM = "ktypeTemp"
@@ -12,28 +18,28 @@ LOGGING = {
         'troubleshooting': {    
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'troubleshooting.log'),
+            'filename': os.path.join(LOG_DIR, 'troubleshooting.log'),
             'maxBytes': 1024*1024*15,
             'backupCount': 10,
             },
         'thermometers': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'thermometers.log'),
+            'filename': os.path.join(LOG_DIR, 'thermometers.log'),
             'maxBytes': 1024*1024*15,
             'backupCount': 10,
             },
         'pid': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'pid.log'),
+            'filename': os.path.join(LOG_DIR, 'pid.log'),
             'maxBytes': 1024*1024*15,
             'backupCount': 10,
             },
         'heater': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'heater.log'),
+            'filename': os.path.join(LOG_DIR, 'heater.log'),
             'maxBytes': 1024*1024*15,
             'backupCount': 10,
             },

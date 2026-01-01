@@ -6,3 +6,6 @@ kType
 homepage/
 tempcreds.py
 *.log
+__pycache__/
+.DS_Store
+smokerpi/logs/

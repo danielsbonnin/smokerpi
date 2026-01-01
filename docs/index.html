@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmokerPi Simulator - IoT BBQ Temperature Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .simulator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .smoker-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb:hover {
+            background: #764ba2;
+        }
+
+        .value-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .info-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+
+        .info-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .info-section p {
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .github-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .github-link:hover {
+            background: #764ba2;
+        }
+
+        @media (max-width: 768px) {
+            .simulator-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+
+        /* Smoke animation */
+        @keyframes smoke {
+            0% {
+                opacity: 0;
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(1.5);
+            }
+        }
+
+        .smoke {
+            animation: smoke 3s ease-out infinite;
+        }
+
+        /* Heat glow animation */
+        @keyframes glow {
+            0%, 100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .heating {
+            animation: glow 1s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔥 SmokerPi Simulator</h1>
+        <p>Interactive BBQ Temperature Control Demo</p>
+    </div>
+
+    <div class="container">
+        <div class="simulator-grid">
+            <!-- SVG Smoker -->
+            <div class="smoker-container">
+                <svg id="smoker" width="400" height="500" viewBox="0 0 400 500">
+                    <!-- Smoker body -->
+                    <rect x="50" y="100" width="300" height="350" fill="#2c3e50" stroke="#1a252f" stroke-width="3" rx="10"/>
+                    
+                    <!-- Smoker door -->
+                    <rect x="80" y="140" width="240" height="280" fill="#34495e" stroke="#1a252f" stroke-width="2" rx="5"/>
+                    
+                    <!-- Door handle -->
+                    <rect x="280" y="270" width="30" height="8" fill="#95a5a6" rx="4"/>
+                    <circle cx="295" cy="274" r="6" fill="#7f8c8d"/>
+                    
+                    <!-- Temperature display panel -->
+                    <rect x="120" y="160" width="160" height="80" fill="#1a252f" rx="5"/>
+                    <text id="tempDisplay" x="200" y="210" text-anchor="middle" font-size="36" font-weight="bold" fill="#e74c3c">225°F</text>
+                    <text x="200" y="230" text-anchor="middle" font-size="12" fill="#95a5a6">Current Temp</text>
+                    
+                    <!-- Target temp indicator -->
+                    <rect x="130" y="250" width="140" height="30" fill="#2c3e50" rx="3"/>
+                    <text id="targetDisplay" x="200" y="270" text-anchor="middle" font-size="16" font-weight="bold" fill="#3498db">Target: 225°F</text>
+                    
+                    <!-- Heating element indicator -->
+                    <g id="heatingElement">
+                        <rect x="100" y="400" width="200" height="20" fill="#e74c3c" opacity="0.6" rx="3"/>
+                        <text x="200" y="415" text-anchor="middle" font-size="12" fill="white" font-weight="bold">HEATING</text>
+                    </g>
+                    
+                    <!-- Duty cycle bar -->
+                    <rect x="90" y="370" width="220" height="15" fill="#34495e" rx="3"/>
+                    <rect id="dutyBar" x="90" y="370" width="110" height="15" fill="#27ae60" rx="3"/>
+                    <text x="200" y="363" text-anchor="middle" font-size="10" fill="#95a5a6">Duty Cycle</text>
+                    
+                    <!-- Smoke particles -->
+                    <g id="smokeGroup">
+                        <ellipse class="smoke" cx="200" cy="80" rx="30" ry="20" fill="#95a5a6" opacity="0"/>
+                        <ellipse class="smoke" cx="180" cy="85" rx="25" ry="18" fill="#95a5a6" opacity="0" style="animation-delay: 0.5s"/>
+                        <ellipse class="smoke" cx="220" cy="85" rx="25" ry="18" fill="#95a5a6" opacity="0" style="animation-delay: 1s"/>
+                        <ellipse class="smoke" cx="200" cy="75" rx="28" ry="19" fill="#95a5a6" opacity="0" style="animation-delay: 1.5s"/>
+                        <ellipse class="smoke" cx="190" cy="82" rx="26" ry="17" fill="#95a5a6" opacity="0" style="animation-delay: 2s"/>
+                        <ellipse class="smoke" cx="210" cy="82" rx="26" ry="17" fill="#95a5a6" opacity="0" style="animation-delay: 2.5s"/>
+                    </g>
+                    
+                    <!-- Chimney/vent -->
+                    <rect x="180" y="50" width="40" height="60" fill="#2c3e50" stroke="#1a252f" stroke-width="2"/>
+                    <rect x="175" y="45" width="50" height="10" fill="#34495e" stroke="#1a252f" stroke-width="2" rx="2"/>
+                    
+                    <!-- Legs -->
+                    <rect x="80" y="450" width="15" height="40" fill="#2c3e50"/>
+                    <rect x="305" y="450" width="15" height="40" fill="#2c3e50"/>
+                </svg>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <div class="control-group">
+                    <label for="targetTemp">Target Temperature</label>
+                    <input type="range" id="targetTemp" min="150" max="350" value="225" step="5">
+                    <div class="value-display" id="targetValue">225°F</div>
+                </div>
+
+                <div class="control-group">
+                    <label for="ambientTemp">Ambient Temperature</label>
+                    <input type="range" id="ambientTemp" min="20" max="100" value="75" step="5">
+                    <div class="value-display" id="ambientValue">75°F</div>
+                </div>
+
+                <div class="control-group">
+                    <label for="pidP">PID P (Proportional)</label>
+                    <input type="range" id="pidP" min="0" max="3" value="1" step="0.1">
+                    <div class="value-display" id="pValue">1.0</div>
+                </div>
+
+                <div class="control-group">
+                    <label for="pidI">PID I (Integral)</label>
+                    <input type="range" id="pidI" min="0" max="1" value="0" step="0.05">
+                    <div class="value-display" id="iValue">0.0</div>
+                </div>
+
+                <div class="stats-panel">
+                    <div class="stat-card">
+                        <div class="stat-label">Error</div>
+                        <div class="stat-value" id="errorDisplay">0°F</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Duty Cycle</div>
+                        <div class="stat-value" id="dutyDisplay">50%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Heat Output</div>
+                        <div class="stat-value" id="heatDisplay">500W</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Time to Target</div>
+                        <div class="stat-value" id="timeDisplay">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>🎯 How It Works</h2>
+            <p>
+                <strong>SmokerPi</strong> uses a PID (Proportional-Integral-Derivative) controller to maintain precise temperature control in your electric smoker. 
+                The system reads the current temperature, compares it to your target, and adjusts the heating element duty cycle accordingly.
+            </p>
+            <p>
+                <strong>Try adjusting the controls above</strong> to see how different parameters affect the system:
+            </p>
+            <ul style="margin-left: 20px; color: #666; line-height: 1.8;">
+                <li><strong>Target Temperature:</strong> Your desired cooking temperature (150-350°F)</li>
+                <li><strong>Ambient Temperature:</strong> Outside temperature affects heat loss</li>
+                <li><strong>P (Proportional):</strong> How aggressively to respond to temperature error</li>
+                <li><strong>I (Integral):</strong> Corrects accumulated error over time</li>
+            </ul>
+            <p style="margin-top: 15px;">
+                The duty cycle shows what percentage of time the heating element is ON vs OFF. The system automatically adjusts this based on the PID calculations and environmental conditions.
+            </p>
+            
+            <a href="https://github.com/danielsbonnin/smokerpi" class="github-link" target="_blank" rel="noopener noreferrer">
+                📦 View on GitHub
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Simulation state
+        let currentTemp = 75;
+        let targetTemp = 225;
+        let ambientTemp = 75;
+        let pidP = 1.0;
+        let pidI = 0.0;
+        let integralError = 0;
+        let lastError = 0;
+        let dutyCycle = 0.5;
+
+        // DOM elements
+        const tempDisplay = document.getElementById('tempDisplay');
+        const targetDisplay = document.getElementById('targetDisplay');
+        const heatingElement = document.getElementById('heatingElement');
+        const dutyBar = document.getElementById('dutyBar');
+        const errorDisplay = document.getElementById('errorDisplay');
+        const dutyDisplay = document.getElementById('dutyDisplay');
+        const heatDisplay = document.getElementById('heatDisplay');
+        const timeDisplay = document.getElementById('timeDisplay');
+
+        // Control inputs
+        document.getElementById('targetTemp').addEventListener('input', (e) => {
+            targetTemp = parseInt(e.target.value);
+            document.getElementById('targetValue').textContent = `${targetTemp}°F`;
+            targetDisplay.textContent = `Target: ${targetTemp}°F`;
+        });
+
+        document.getElementById('ambientTemp').addEventListener('input', (e) => {
+            ambientTemp = parseInt(e.target.value);
+            document.getElementById('ambientValue').textContent = `${ambientTemp}°F`;
+        });
+
+        document.getElementById('pidP').addEventListener('input', (e) => {
+            pidP = parseFloat(e.target.value);
+            document.getElementById('pValue').textContent = pidP.toFixed(1);
+        });
+
+        document.getElementById('pidI').addEventListener('input', (e) => {
+            pidI = parseFloat(e.target.value);
+            document.getElementById('iValue').textContent = pidI.toFixed(2);
+        });
+
+        // Simulation loop
+        function simulate() {
+            // Calculate error
+            const error = targetTemp - currentTemp;
+            
+            // PID calculation
+            const pTerm = pidP * error;
+            integralError += error * 0.1; // dt = 0.1s simulation step
+            
+            // Windup guard
+            integralError = Math.max(-100, Math.min(100, integralError));
+            
+            const iTerm = pidI * integralError;
+            const pidOutput = pTerm + iTerm;
+            
+            // Convert PID output to duty cycle (0-1) using sigmoid
+            const sigmoid = (x) => 1 / (1 + Math.exp(-x / 10));
+            dutyCycle = sigmoid(pidOutput);
+            
+            // Limit duty cycle based on temp difference
+            const maxDuty = Math.min(1.0, (targetTemp - ambientTemp) / 250);
+            dutyCycle = Math.min(dutyCycle, maxDuty);
+            dutyCycle = Math.max(0, dutyCycle);
+            
+            // Calculate heat input and heat loss
+            const maxHeatRate = 5; // degrees per second at full power
+            const heatInput = dutyCycle * maxHeatRate * 0.1;
+            
+            // Heat loss is proportional to temp difference from ambient
+            const heatLoss = 0.01 * (currentTemp - ambientTemp) * 0.1;
+            
+            // Update temperature
+            currentTemp += heatInput - heatLoss;
+            currentTemp = Math.max(ambientTemp, currentTemp); // Can't go below ambient
+            
+            // Update display
+            tempDisplay.textContent = `${Math.round(currentTemp)}°F`;
+            errorDisplay.textContent = `${Math.round(error)}°F`;
+            dutyDisplay.textContent = `${Math.round(dutyCycle * 100)}%`;
+            
+            // Update duty cycle bar
+            const barWidth = 220 * dutyCycle;
+            dutyBar.setAttribute('width', barWidth);
+            
+            // Update heating element glow
+            if (dutyCycle > 0.1) {
+                heatingElement.classList.add('heating');
+                heatingElement.style.opacity = 0.6 + (dutyCycle * 0.4);
+            } else {
+                heatingElement.classList.remove('heating');
+                heatingElement.style.opacity = 0.3;
+            }
+            
+            // Calculate heat output in watts (simulated)
+            const watts = Math.round(dutyCycle * 1000);
+            heatDisplay.textContent = `${watts}W`;
+            
+            // Estimate time to target
+            if (Math.abs(error) > 5) {
+                const rate = heatInput - heatLoss;
+                if (rate > 0.01) {
+                    const timeToTarget = Math.abs(error) / (rate / 0.1);
+                    const totalMinutes = Math.round(timeToTarget / 60);
+                    if (totalMinutes >= 60) {
+                        const hours = Math.floor(totalMinutes / 60);
+                        const minutes = totalMinutes % 60;
+                        timeDisplay.textContent = `${hours}h ${minutes}m`;
+                    } else {
+                        timeDisplay.textContent = `${totalMinutes}m`;
+                    }
+                } else {
+                    timeDisplay.textContent = '∞';
+                }
+            } else {
+                timeDisplay.textContent = 'At Target!';
+            }
+            
+            // Color temp display based on error
+            if (Math.abs(error) < 5) {
+                tempDisplay.setAttribute('fill', '#27ae60');
+            } else if (Math.abs(error) < 15) {
+                tempDisplay.setAttribute('fill', '#f39c12');
+            } else {
+                tempDisplay.setAttribute('fill', '#e74c3c');
+            }
+        }
+
+        // Run simulation at 10Hz
+        setInterval(simulate, 100);
+    </script>
+</body>
+</html>
